@@ -1,4 +1,9 @@
-package org.acme.vertx;
+/*package org.acme.vertx;
 
-public class MyNameCodec {
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.MessageCodec;
+
+public class MyNameCodec extends MessageCodec {
+
 }
+*/
