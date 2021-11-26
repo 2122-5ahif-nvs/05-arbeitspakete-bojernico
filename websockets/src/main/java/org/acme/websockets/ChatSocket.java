@@ -21,7 +21,8 @@ public class ChatSocket {
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
         sessions.put(username, session);
-        broadcast("User " + username+ " joined");
+        // enable if you want that message when joining (not working with tests)
+        // broadcast("User " + username+ " joined");
     }
 
     @OnClose
