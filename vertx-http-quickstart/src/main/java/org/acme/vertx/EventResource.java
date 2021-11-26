@@ -1,5 +1,6 @@
 package org.acme.vertx;
 
+import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
@@ -23,5 +24,10 @@ public class EventResource {
     public Uni<String> greeting(@PathParam("name") String name) {
         return bus.<String>request("greeting", name)
                 .onItem().transform(Message::body);
+    }
+
+    @ConsumeEvent("greeting")
+    Uni<String> greeting(MyName name) {
+        return Uni.createFrom().item(() -> "Hello " + name.getName());
     }
 }
