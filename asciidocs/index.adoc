@@ -1,0 +1,119 @@
+= Arbeitspakete Dokumentation
+Nico Bojer
+1.0.0, 2021-12-05: Some notes
+ifndef::imagesdir[:imagesdir: images]
+//:toc-placement!:  // prevents the generation of the doc at this position, so it can be printed afterwards
+:sourcedir: ../src/main/java
+:icons: font
+:sectnums:    // Nummerierung der Überschriften / section numbering
+:toc: left
+
+//Need this blank line after ifdef, don't know why...
+ifdef::backend-html5[]
+
+// print the toc here (not at the default position)
+//toc::[]
+
+== Websockets
+
+Ein Websocket ermöglicht es, eine interaktive Kommunikations-Session zwischen
+dem Client und dem Server herzustellen.
+Diese kann von beiden Seiten geschlossen werden.
+
+Beispiele:
+
+* Chats,
+* Sports Updates
+
+=== Einbindung
+
+- Extension hinzufügen
+```
+quarkus ext add websockets
+```
+
+- Neue Klasse mit
+
+* **@ApplicationScoped** und
+* **@ServerEndpoint(<path-to-your-websocket>)**  annotieren
+
+- Eine Session-Map erstellen, um alle verbundenen Clients zu speichern
+
+```
+Map<String, Session> currentSessions = new ConcurrentHashMap<String, Session>();
+```
+
+- Beispiel zur Implementierung von Methoden, um Websockets zu behandeln.
+
+```
+@OnOpen
+public void onOpen(Session session, @PathParam("name") String name) {
+    currentSessions.put(name, session);
+}
+
+@OnClose
+public void onClose(Session session, @PathParam("name") String name) {
+    currentSessions.remove(name);
+}
+
+
+@OnError
+public void onError(Session session, @PathParam("name") String name, Throwable error) {
+    currentSessions.remove(name);
+}
+
+@OnMessage
+public void OnMessage(Session session, @PathParam("name") String name) {
+    if (!message.equalsIgnoreCase("_ready_")) {
+        // Handle message
+    }
+}
+
+public void broadcast(String message) {
+    sessions.values().forEach(s -> {
+        s.getAsyncRemote().sendObject(message, result -> {
+            if (result.getException() != null) {
+                System.out.println("Sending message failed: " + result.getException());
+            }
+        });
+    });
+}
+
+```
+
+== Vertx
+
+Vertx ermöglicht es, asynchrone Endpoints zu schreiben,
+um z.B. bei länger andauerneden Operationen keine leere Response zu erhalten.
+
+=== Einbindung
+
+- Extensions hinzufügen
+```
+quarkus ext add vertx
+quarkus ext add resteasy-mutiny
+```
+
+- Neue Service-Klasse mit **@ApplicationScoped** annotieren
+- ManagedExecutor via Dependency Injection
+- Eine _consume_-Methode mit einer asynchronen Operation erstellen
+```
+@ConsumeEvent("greeting")
+    public Uni<String> consume(String name) {
+        return Uni.createFrom().item(name::toUpperCase).emitOn(executor);
+    }
+```
+
+- Neue Resource-Klasse  mit @Path(<path-to-your-resource>) annotieren
+- EventBus via Dependency Injection
+- Endpoint mit einer asynchronen Operation erstellen
+```
+@GET
+@Produces(MediaType.TEXT_PLAIN)
+@Path("{name}")
+public Uni<String> greeting(@PathParam("name") String name) {
+    return bus.<String>request("greeting", name)
+        .onItem().transform(Message::body);
+
+    }
+```
