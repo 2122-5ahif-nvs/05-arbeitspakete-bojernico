@@ -1,5 +1,6 @@
-package at.htl.quarkus.keycloak;
+package at.htl.keycloak;
 
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
@@ -8,6 +9,7 @@ import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 
 @QuarkusTest
+@QuarkusTestResource(KeycloakResource.class)
 public class AdminResourceTest extends AccessTokenProvider {
 
     @Test
@@ -36,4 +38,5 @@ public class AdminResourceTest extends AccessTokenProvider {
                 .then()
                 .statusCode(403);
     }
+
 }
